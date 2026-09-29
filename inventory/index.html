@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>InventarioSync · Shopify + IW</title>
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('inventariosync-theme');
+          if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+        } catch (error) {
+          /* almacenamiento no disponible: se usa el tema del sistema */
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+      defer
+    ></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 11a8 8 0 0 0-13.7-5.3L4 8" /><path d="M4 4v4h4" />
+        <path d="M4 13a8 8 0 0 0 13.7 5.3L20 16" /><path d="M20 20v-4h-4" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 3v2M12 19v2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M3 12h2M19 12h2M4.9 19.1l1.5-1.5M17.6 6.4l1.5-1.5" />
+      </symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.2 14.6A8.4 8.4 0 0 1 9.4 3.8a8.4 8.4 0 1 0 10.8 10.8z" />
+      </symbol>
+      <symbol id="i-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8" />
+        <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none" />
+      </symbol>
+      <symbol id="i-cog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3.1" />
+        <path d="M19.4 14.5a1.6 1.6 0 0 0 .33 1.77l.06.06a1.9 1.9 0 1 1-2.7 2.7l-.05-.06a1.6 1.6 0 0 0-1.78-.33 1.6 1.6 0 0 0-.97 1.47v.17a1.9 1.9 0 1 1-3.8 0v-.09a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.33l-.06.06a1.9 1.9 0 1 1-2.7-2.7l.06-.06a1.6 1.6 0 0 0 .33-1.77 1.6 1.6 0 0 0-1.47-.97H3.6a1.9 1.9 0 1 1 0-3.8h.09A1.6 1.6 0 0 0 5.16 8.6a1.6 1.6 0 0 0-.33-1.77l-.06-.06a1.9 1.9 0 1 1 2.7-2.7l.06.06a1.6 1.6 0 0 0 1.77.33h.08A1.6 1.6 0 0 0 10.35 3v-.17a1.9 1.9 0 1 1 3.8 0v.09a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.78-.33l.05-.06a1.9 1.9 0 1 1 2.7 2.7l-.06.06a1.6 1.6 0 0 0-.33 1.77v.08a1.6 1.6 0 0 0 1.47.97h.17a1.9 1.9 0 1 1 0 3.8h-.09a1.6 1.6 0 0 0-1.47.97z" />
+      </symbol>
+      <symbol id="i-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" /><path d="M4 7.5l8 4.5 8-4.5" /><path d="M12 12v9" />
+      </symbol>
+      <symbol id="i-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="8" y="3" width="8" height="4" rx="1.4" />
+        <path d="M9.5 5H7a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 17 5h-2.5" />
+        <path d="M8.5 12h7M8.5 16h4.5" />
+      </symbol>
+      <symbol id="i-database" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="12" cy="6" rx="7" ry="3" /><path d="M5 6v6c0 1.66 3.13 3 7 3s7-1.34 7-3V6" />
+        <path d="M5 12v6c0 1.66 3.13 3 7 3s7-1.34 7-3v-6" />
+      </symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9h15l-3.5-3.5" /><path d="M20 15H5l3.5 3.5" />
+      </symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.5 5.6v12.8a1 1 0 0 0 1.52.85l10.2-6.4a1 1 0 0 0 0-1.7L9.02 4.75A1 1 0 0 0 7.5 5.6z" />
+      </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 4v10" /><path d="M8.5 10.5L12 14l3.5-3.5" /><path d="M5 16.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-2.5" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="6" /><path d="M20 20l-4.6-4.6" />
+      </symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" /><path d="M19.5 4.5V9H15" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8" /><path d="M8.5 12.3l2.4 2.4 4.6-5.2" />
+      </symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 4.6l8.2 14.2a1 1 0 0 1-.87 1.5H4.67a1 1 0 0 1-.87-1.5L12 4.6z" /><path d="M12 10v4.2" /><path d="M12 17.4h.01" />
+      </symbol>
+      <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8" /><path d="M12 11.2v4.6" /><path d="M12 8.3h.01" />
+      </symbol>
+      <symbol id="i-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8" /><path d="M9.6 9.6l4.8 4.8M14.4 9.6l-4.8 4.8" />
+      </symbol>
+      <symbol id="i-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 19V12M10 19V6M15 19v-4M20 19V9" />
+      </symbol>
+      <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 9L6 4.5h12L19.5 9" /><path d="M5.5 9v9.5A1.5 1.5 0 0 0 7 20h10a1.5 1.5 0 0 0 1.5-1.5V9" />
+        <path d="M9.5 20v-5h5v5" />
+      </symbol>
+      <symbol id="i-barcode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6v12M7.5 6v12M11 6v8.5M14.5 6v12M18 6v8.5M20.5 6v12" />
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3.2l7 2.8v5.6c0 4.1-2.9 7.6-7 9.2-4.1-1.6-7-5.1-7-9.2V6l7-2.8z" /><path d="M9 12l2.2 2.2L15.2 10" />
+      </symbol>
+      <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4l16 16" /><path d="M9.9 5.3A8.7 8.7 0 0 1 12 5c5 0 8.5 4.4 9.4 6.2.2.5.2 1.1 0 1.6-.4.8-1.3 2.2-2.7 3.5" />
+        <path d="M6.3 7.6C4.6 9 3.5 10.7 3 11.7c-.2.5-.2 1.1 0 1.6C3.5 15.1 7 19 12 19c1.4 0 2.7-.3 3.8-.8" />
+        <path d="M10 10.2a2.6 2.6 0 0 0 3.7 3.7" />
+      </symbol>
+      <symbol id="i-zero" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8" /><path d="M15.5 8.5l-7 7" />
+      </symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 11.6V5.6A1.6 1.6 0 0 1 5.6 4h6l8.4 8.4a1.5 1.5 0 0 1 0 2.1l-4.3 4.3a1.5 1.5 0 0 1-2.1 0L4 11.6z" />
+        <circle cx="8.4" cy="8.4" r="1.3" />
+      </symbol>
+      <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 6h11M9 12h11M9 18h11" /><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8" /><path d="M12 8.8v6.4M8.8 12h6.4" />
+      </symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 16V6" /><path d="M8.5 9.5L12 6l3.5 3.5" /><path d="M5 16.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-2.5" />
+      </symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 5.5l6.5 6.5-6.5 6.5" />
+      </symbol>
+    </svg>
+
+    <header class="topbar">
+      <button class="topbar-btn" id="sidebarToggle" type="button" aria-label="Mostrar u ocultar el menú" aria-expanded="true">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu" /></svg>
+      </button>
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"><svg class="icon"><use href="#i-sync" /></svg></span>
+        <span class="brand-text">Inventario<b>Sync</b></span>
+      </a>
+      <div class="topbar-right">
+        <span class="status-chip" id="fileStatus" data-ready="false">Esperando archivos</span>
+        <button class="topbar-btn theme-btn" id="themeToggle" type="button" title="Cambiar el tema" aria-label="Cambiar el tema">
+          <svg class="icon" data-mode="auto" aria-hidden="true"><use href="#i-auto" /></svg>
+          <svg class="icon" data-mode="light" aria-hidden="true"><use href="#i-sun" /></svg>
+          <svg class="icon" data-mode="dark" aria-hidden="true"><use href="#i-moon" /></svg>
+        </button>
+        <button class="topbar-btn topbar-btn-label" id="resetButton" type="button" title="Limpiar los archivos cargados">
+          <svg class="icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+          <span>Limpiar</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="nav-backdrop" id="navBackdrop" aria-hidden="true"></div>
+
+    <aside class="sidebar" id="sidebar" aria-label="Navegación">
+      <nav class="nav">
+        <p class="nav-label">Resultados</p>
+        <button class="tab" type="button" data-view="actions">
+          <svg class="icon" aria-hidden="true"><use href="#i-swap" /></svg>
+          <span>Acciones</span><strong data-tab-count="actions">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="updated">
+          <svg class="icon" aria-hidden="true"><use href="#i-check" /></svg>
+          <span>Actualizados</span><strong data-tab-count="updated">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="upload">
+          <svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg>
+          <span>Subida</span><strong data-tab-count="upload">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="shopify">
+          <svg class="icon" aria-hidden="true"><use href="#i-store" /></svg>
+          <span>Estados</span><strong data-tab-count="shopify">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="prices">
+          <svg class="icon" aria-hidden="true"><use href="#i-tag" /></svg>
+          <span>Precios</span><strong data-tab-count="prices">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="zero">
+          <svg class="icon" aria-hidden="true"><use href="#i-zero" /></svg>
+          <span>Existencia cero</span><strong data-tab-count="zero">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="missing">
+          <svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg>
+          <span>No creados</span><strong data-tab-count="missing">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="review">
+          <svg class="icon" aria-hidden="true"><use href="#i-alert" /></svg>
+          <span>Revisión</span><strong data-tab-count="review">0</strong>
+        </button>
+        <button class="tab" type="button" data-view="all">
+          <svg class="icon" aria-hidden="true"><use href="#i-list" /></svg>
+          <span>Todos los productos</span><strong data-tab-count="all">0</strong>
+        </button>
+
+        <p class="nav-label">Descargas</p>
+        <button class="nav-item nav-item-primary" id="downloadInventory" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-download" /></svg>
+          <span>CSV de inventario</span>
+        </button>
+        <button class="nav-item" id="downloadUpcFix" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-barcode" /></svg>
+          <span>UPC por corregir</span>
+        </button>
+        <button class="nav-item" id="downloadZeroed" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-zero" /></svg>
+          <span>Puestos en 0</span>
+        </button>
+        <button class="nav-item" id="downloadUntracked" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-eye-off" /></svg>
+          <span>Sin seguimiento</span>
+        </button>
+        <button class="nav-item" id="downloadStatus" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-store" /></svg>
+          <span>Estados active/draft</span>
+        </button>
+        <button class="nav-item" id="downloadMissing" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg>
+          <span>Productos no creados</span>
+        </button>
+        <button class="nav-item" id="downloadPriceReport" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-tag" /></svg>
+          <span>Reporte de precios</span>
+        </button>
+        <button class="nav-item" id="downloadReport" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="#i-list" /></svg>
+          <span>Auditoría completa</span>
+        </button>
+
+        <p class="nav-label">Ayuda</p>
+        <div class="nav-note">
+          <svg class="icon" aria-hidden="true"><use href="#i-shield" /></svg>
+          <span>Los archivos se procesan en tu navegador. Nada se envía a internet.</span>
+        </div>
+      </nav>
+    </aside>
+
+    <button class="fab" id="configToggle" type="button" title="Ir a la configuración" aria-label="Ir a la configuración">
+      <svg class="icon" aria-hidden="true"><use href="#i-cog" /></svg>
+    </button>
+
+    <main class="main" id="top">
+      <nav class="breadcrumb" aria-label="Ruta">
+        <a href="#top">Inicio</a>
+        <svg class="icon" aria-hidden="true"><use href="#i-chevron" /></svg>
+        <span>Sincronización de inventario</span>
+      </nav>
+      <h1 class="page-title">Panel de sincronización</h1>
+
+      <div class="alert-bar" id="processMessage" data-tone="info" role="status" aria-live="polite">
+        <svg class="alert-icon" data-for="info" aria-hidden="true"><use href="#i-info" /></svg>
+        <svg class="alert-icon" data-for="warn" aria-hidden="true"><use href="#i-alert" /></svg>
+        <svg class="alert-icon" data-for="error" aria-hidden="true"><use href="#i-error" /></svg>
+        <p id="processMessageText"></p>
+      </div>
+
+      <section class="setup" id="setup" aria-label="Configuración">
+        <article class="card">
+          <header class="card-head">
+            <span class="step" aria-hidden="true">1</span>
+            <div class="card-title">
+              <h2>Archivos de trabajo</h2>
+              <p>Expórtalos el mismo día, justo antes de subir.</p>
+            </div>
+          </header>
+          <div class="card-body dropzones">
+            <label class="dropzone" id="dropProducts" for="productsInput">
+              <input id="productsInput" type="file" accept=".csv,text/csv" multiple />
+              <span class="dropzone-icon" aria-hidden="true"><svg class="icon"><use href="#i-package" /></svg></span>
+              <span class="dropzone-body">
+                <strong>Productos Shopify</strong>
+                <small>CSV con Variant SKU y Variant Barcode(s). Acepta varias partes.</small>
+                <span class="file-chip" id="productsFiles">Sin archivos</span>
+              </span>
+              <span class="dropzone-state" aria-hidden="true"><svg class="icon"><use href="#i-check" /></svg></span>
+            </label>
+
+            <label class="dropzone" id="dropInventory" for="inventoryInput">
+              <input id="inventoryInput" type="file" accept=".csv,text/csv" />
+              <span class="dropzone-icon" aria-hidden="true"><svg class="icon"><use href="#i-clipboard" /></svg></span>
+              <span class="dropzone-body">
+                <strong>Inventario Shopify</strong>
+                <small>Export "All states". Solo incluye variantes con seguimiento activo.</small>
+                <span class="file-chip" id="inventoryFiles">Sin archivo</span>
+              </span>
+              <span class="dropzone-state" aria-hidden="true"><svg class="icon"><use href="#i-check" /></svg></span>
+            </label>
+
+            <label class="dropzone" id="dropIw" for="iwInput">
+              <input
+                id="iwInput"
+                type="file"
+                accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              />
+              <span class="dropzone-icon" aria-hidden="true"><svg class="icon"><use href="#i-database" /></svg></span>
+              <span class="dropzone-body">
+                <strong>Existencias IW</strong>
+                <small>XLSX o CSV con Código de Barras y columnas por bodega.</small>
+                <span class="file-chip" id="iwFiles">Sin archivo</span>
+              </span>
+              <span class="dropzone-state" aria-hidden="true"><svg class="icon"><use href="#i-check" /></svg></span>
+            </label>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-head">
+            <span class="step" aria-hidden="true">2</span>
+            <div class="card-title">
+              <h2>Sucursales y bodegas</h2>
+              <p>Ctrl+clic para sumar varias bodegas a una sucursal.</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <div class="mapping">
+              <div class="mapping-row">
+                <label for="mapChalchuapa">
+                  <svg class="icon" aria-hidden="true"><use href="#i-store" /></svg>
+                  <span>Chalchuapa</span>
+                </label>
+                <select id="mapChalchuapa" data-shopify-location="Sucursal Chalchuapa" multiple size="4">
+                  <option value="ALMACEN" selected>ALMACEN</option>
+                </select>
+              </div>
+              <div class="mapping-row">
+                <label for="mapSantaAna">
+                  <svg class="icon" aria-hidden="true"><use href="#i-store" /></svg>
+                  <span>Santa Ana Independencia</span>
+                </label>
+                <select id="mapSantaAna" data-shopify-location="Sucursal Santa Ana Independencia" multiple size="4">
+                  <option value="ALMACEN SANTA ANA" selected>ALMACEN SANTA ANA</option>
+                </select>
+              </div>
+              <div class="mapping-row">
+                <label for="mapZarzamora">
+                  <svg class="icon" aria-hidden="true"><use href="#i-store" /></svg>
+                  <span>Santa Ana Zarzamora</span>
+                </label>
+                <select id="mapZarzamora" data-shopify-location="Sucursal Santa Ana Zarzamora" multiple size="4">
+                  <option value="ALMACEN ZARZAMORA" selected>ALMACEN ZARZAMORA</option>
+                </select>
+              </div>
+            </div>
+            <p class="hint">
+              <svg class="icon" aria-hidden="true"><use href="#i-info" /></svg>
+              Las bodegas que no asignes no se suben; la app te dice cuántas unidades quedan fuera.
+            </p>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-head">
+            <span class="step" aria-hidden="true">3</span>
+            <div class="card-title">
+              <h2>Reglas y ejecución</h2>
+              <p>IW es la fuente de verdad de las existencias.</p>
+            </div>
+          </header>
+          <div class="card-body options">
+            <div class="price-reference" aria-labelledby="price-reference-title">
+              <div class="price-reference-icon" aria-hidden="true">
+                <svg class="icon"><use href="#i-tag" /></svg>
+              </div>
+              <div class="price-reference-copy">
+                <strong id="price-reference-title">Comparación de precios</strong>
+                <small>
+                  Elige la lista de IW que servirá como referencia. Si Shopify está en oferta, también se compara el precio
+                  regular (Compare-at). El reporte es informativo y no modifica precios.
+                </small>
+              </div>
+              <label class="price-reference-field" for="iwPriceColumn">
+                <span>Precio IW de referencia</span>
+                <select id="iwPriceColumn" disabled>
+                  <option value="">Carga Existencias IW</option>
+                </select>
+                <small id="iwPriceStatus">Se seleccionará Precio 4 por defecto cuando exista.</small>
+              </label>
+            </div>
+
+            <label class="option">
+              <input id="clampNegative" type="checkbox" checked />
+              <span class="switch" aria-hidden="true"></span>
+              <span class="option-text"><strong>Convertir existencias negativas a 0</strong></span>
+            </label>
+
+            <label class="option">
+              <input id="skuFallback" type="checkbox" checked />
+              <span class="switch" aria-hidden="true"></span>
+              <span class="option-text">
+                <strong>Usar el SKU como UPC alterno</strong>
+                <small>Solo si el UPC de Shopify no está en IW y el SKU coincide con un único UPC de IW.</small>
+              </span>
+            </label>
+
+            <label class="option">
+              <input id="removeCurrentOnHand" type="checkbox" checked />
+              <span class="switch" aria-hidden="true"></span>
+              <span class="option-text">
+                <strong>Eliminar "On hand (current)" del CSV</strong>
+                <small>Evita rechazos por inventario actual desactualizado.</small>
+              </span>
+            </label>
+
+            <label class="option">
+              <input id="onlyUpdatedRows" type="checkbox" checked />
+              <span class="switch" aria-hidden="true"></span>
+              <span class="option-text">
+                <strong>Incluir solo filas con existencia nueva</strong>
+                <small>Las filas vacías son las que Shopify rechaza con "handle doesn't match".</small>
+              </span>
+            </label>
+
+            <label class="option">
+              <input id="zeroNoUpc" type="checkbox" />
+              <span class="switch" aria-hidden="true"></span>
+              <span class="option-text">
+                <strong>Poner en 0 también las variantes sin UPC válido</strong>
+                <small>Apagado por defecto: lo correcto es agregar el UPC en Shopify.</small>
+              </span>
+            </label>
+
+            <div class="option option-field">
+              <span class="option-text">
+                <strong>Poner en 0 cuando el UPC no existe en IW</strong>
+                <small>Solo UPC numéricos, ubicados por Handle + opciones, con seguimiento activo y existencia distinta de 0.</small>
+              </span>
+              <select id="zeroMissingIw" aria-label="Alcance de la puesta en 0">
+                <option value="all" selected>Todos los productos (también activos)</option>
+                <option value="inactive">Solo archivados o en borrador</option>
+                <option value="off">No poner en 0</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary btn-run" id="processButton" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-play" /></svg>
+              <span id="processButtonLabel">Comparar y generar archivos</span>
+            </button>
+            <div class="progress-track" aria-hidden="true"><span id="progressBar"></span></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="metrics" id="metricsGrid" aria-label="Resumen de la comparación"></section>
+
+      <section class="card results" aria-labelledby="resultsTitle">
+        <header class="card-head results-head">
+          <div class="card-title">
+            <h2 id="resultsTitle">Centro de revisión</h2>
+            <p id="resultsSubtitle">Elige una vista en el menú lateral antes de subir el archivo.</p>
+          </div>
+          <label class="search" for="searchInput">
+            <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Buscar por UPC, SKU, producto o motivo"
+              autocomplete="off"
+            />
+          </label>
+        </header>
+
+        <section class="price-summary" id="priceComparisonSummary" aria-label="Resumen de precios" hidden>
+          <div class="price-summary-heading">
+            <div>
+              <strong>Resultado de la comparación</strong>
+              <span id="priceReferenceText">Carga los archivos para comparar.</span>
+            </div>
+            <span class="price-summary-note">Diferencia = Shopify − IW</span>
+          </div>
+          <div class="price-summary-grid" id="priceSummaryGrid"></div>
+        </section>
+
+        <div class="filters" id="priceFilterPanel" aria-label="Filtros de precios">
+          <button class="chip active" type="button" data-price-filter="all">Todos <strong data-price-filter-count="all">0</strong></button>
+          <button class="chip" type="button" data-price-filter="same-price">Coinciden <strong data-price-filter-count="same-price">0</strong></button>
+          <button class="chip" type="button" data-price-filter="shopify-sale">Oferta Shopify <strong data-price-filter-count="shopify-sale">0</strong></button>
+          <button class="chip" type="button" data-price-filter="shopify-only-sale">Oferta: regular coincide <strong data-price-filter-count="shopify-only-sale">0</strong></button>
+          <button class="chip" type="button" data-price-filter="other-iw-price">Coincide con otra lista <strong data-price-filter-count="other-iw-price">0</strong></button>
+          <button class="chip" type="button" data-price-filter="price-difference">Diferencias <strong data-price-filter-count="price-difference">0</strong></button>
+          <button class="chip" type="button" data-price-filter="shopify-higher">Shopify más alto <strong data-price-filter-count="shopify-higher">0</strong></button>
+          <button class="chip" type="button" data-price-filter="shopify-lower">Shopify más bajo <strong data-price-filter-count="shopify-lower">0</strong></button>
+          <button class="chip" type="button" data-price-filter="iw-price-missing">Sin precio IW <strong data-price-filter-count="iw-price-missing">0</strong></button>
+          <button class="chip" type="button" data-price-filter="invalid-price">Precio 0/inválido <strong data-price-filter-count="invalid-price">0</strong></button>
+          <button class="chip" type="button" data-price-filter="compare-at-issue">Compare-at inconsistente <strong data-price-filter-count="compare-at-issue">0</strong></button>
+          <button class="chip" type="button" data-price-filter="no-iw">Sin producto IW <strong data-price-filter-count="no-iw">0</strong></button>
+        </div>
+
+        <div class="table-tools">
+          <span class="table-count" id="tableCount">Sin datos</span>
+        </div>
+
+        <div class="table-wrap">
+          <table id="resultsTable" class="is-empty">
+            <thead></thead>
+            <tbody>
+              <tr>
+                <td class="empty-state">Carga los tres archivos y ejecuta la comparación.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
